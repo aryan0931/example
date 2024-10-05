@@ -50,7 +50,7 @@ cd initial_model
 wget https://kubeedge.obs.cn-north-1.myhuaweicloud.com:443/ianvs/pcb-aoi/model.zip # No need to unzip
 ```
 
-## Step.4 Run PCB-AoI
+## Step.4 Run 
 
 ```bash
 $ python benchmarking.py -f ./examples/pcb-aoi/singletask_learning_bench/fault detection/benchmarkingjob.yaml
