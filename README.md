@@ -47,7 +47,7 @@ cd .. # back to ianvs root path
 
 mkdir initial_model
 cd initial_model
-wget https://kubeedge.obs.cn-north-1.myhuaweicloud.com:443/ianvs/pcb-aoi/model.zip # No need to unzip
+git clone https://github.com/openai/CLIP.git
 ```
 
 ## Step.4 Run 
