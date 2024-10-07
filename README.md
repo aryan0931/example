@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 ```
 
-## Step.2 PCB-AoI Example Environment Preparation
+## Step.2 Example Environment Preparation
 
 ```bash
 pip install examples/resources/algorithms/FPN_TensorFlow-0.1-py3-none-any.whl
