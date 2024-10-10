@@ -8,7 +8,7 @@ conda create -n ianvs-py36 python=3.6
 conda activate ianvs-py36
 
 # Clone path-error-fixed Ianvs
-git clone https://github.com/FuryMartin/ianvs.git
+git clone https://github.com/aryan0931/ianvs.git
 # switch to quickstart branch
 git switch quickstart 
 cd ianvs
