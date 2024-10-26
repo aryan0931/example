@@ -1,0 +1,98 @@
+# -*- coding: utf-8 -*-
+import os
+import numpy as np  # linear algebra
+import pandas as pd  # data processing, CSV file I/O
+import torch
+import textwrap
+import matplotlib.pyplot as plt
+from PIL import Image
+import clip
+from sedna.common.class_factory import ClassFactory, ClassType  # Sedna imports
+
+# Register the model with Sedna's ClassFactory
+@ClassFactory.register(ClassType.GENERAL, alias="CLIP_SingleTask")
+class CLIPModelSingleTask:
+
+    def __init__(self, dataset_dir="path_to_dataset_directory"):
+        self.dataset_dir = dataset_dir
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
+        self.model.eval()
+        
+        # Load the dataset
+        file_path = os.path.join(self.dataset_dir, 'captions.txt')
+        df = pd.read_csv(file_path, delimiter=',')
+        df.columns = ['image', 'caption']
+        df['caption'] = df['caption'].str.lstrip()
+        self.df = df
+        print("Model initialized and dataset loaded.")
+
+    def train(self, train_data, valid_data=None, **kwargs):
+        # This example does not involve re-training CLIP but loads a pre-trained model.
+        print("CLIP is a pre-trained model; training is not implemented in this example.")
+
+    def predict(self, count=12, **kwargs):
+        # Randomly select a sample of images for prediction
+        random_sample = self.df.sample(n=count, random_state=1)
+        image_names = random_sample['image'].tolist()
+        descriptions = random_sample['caption'].tolist()
+
+        # Prepare images and texts for the model
+        original_images = []
+        texts = []
+        image_dir = os.path.join(self.dataset_dir, 'Images')
+        wrapper = textwrap.TextWrapper(width=30)
+
+        # Load and preprocess images
+        for filename in image_names:
+            image = Image.open(os.path.join(image_dir, filename)).convert("RGB")
+            original_images.append(image)
+            texts.append(descriptions[image_names.index(filename)])
+
+        # Preprocess images for CLIP
+        images = [self.preprocess(image) for image in original_images]
+        image_input = torch.stack(images).to(self.device)
+
+        # Tokenize text input
+        text_tokens = clip.tokenize(texts).to(self.device)
+
+        # Run the forward pass to get image and text features
+        with torch.no_grad():
+            image_features = self.model.encode_image(image_input).float()
+            text_features = self.model.encode_text(text_tokens).float()
+
+        # Normalize features
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+
+        # Calculate cosine similarity
+        similarity = text_features.cpu().numpy() @ image_features.cpu().numpy().T
+        print("Inference completed with cosine similarity computed.")
+        
+        return similarity, original_images, texts
+
+    def evaluate(self, k_values=[1, 3, 5, 10]):
+        similarity, original_images, descriptions = self.predict(len(descriptions))
+
+        def compute_accuracy(similarity, k, count):
+            top_k_indices = np.argsort(similarity, axis=1)[:, -k:]
+            correct_indices = np.arange(count).reshape(-1, 1)
+            matches_top_k = np.any(top_k_indices == correct_indices, axis=1)
+            top_k_accuracy = matches_top_k.mean()
+            print(f"Top-{k} Accuracy: {top_k_accuracy:.2f}")
+
+        # Compute accuracy for each specified k-value
+        for k in k_values:
+            compute_accuracy(similarity, k, len(descriptions))
+
+    def load(self, model_url=None):
+        # Load function for Sedna compatibility - CLIP is loaded in __init__
+        if model_url:
+            print(f"Loaded model from {model_url}")
+        else:
+            print("Using default pre-trained CLIP model.")
+        
+# Example Usage
+model = CLIPModelSingleTask(dataset_dir="path_to_dataset_directory")
+similarity, images, texts = model.predict(12)
+model.evaluate([1, 3, 5, 10])
