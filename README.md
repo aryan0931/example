@@ -53,6 +53,7 @@ git clone https://github.com/openai/CLIP.git
 ## Step.4 Run 
 
 ```bash
-$ python benchmarking.py -f ./examples/pcb-aoi/singletask_learning_bench/fault detection/benchmarkingjob.yaml
+python3 benchmarking.py -f "/home/aryan/ianvs/examples/pcb-aoi/singletask_learning_bench/fault_detection/benchmarkingjob.yaml"
+
 
 
